@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<voicemail>
+<!-- innovaphone AbwesenheitsManager == inno srl kwa 2008 V210 -->
+    <function define="Main">
+        <pbx-getcallinfo out-cgpn="$cgpn" out-cdpn="$cdpn" out-leg2="$leg2" />
+        <pbx-finduser-e164 e164="$leg2" out-cn="$cn" />
+        <if cond="$cn">
+             <call name="Play" />
+        </if>
+        <while notcond="$cn">
+            <pbx-finduser-e164 e164="$cgpn" out-cn="$cn" />
+           <if cond="$cn">
+                <call name="Record" />
+            </if>
+            <pbx-disc/> 
+        </while>
+    </function>
+<!-- =======================Record==================================== -->    
+    <function define="Record">
+         <store-get root="" name="en_registrazione.g729" out-url="$ctrl"/>
+         <pbx-prompt url="$ctrl"/>
+         <store-get root="" name="beep.g729" out-url="$ctrl"/>
+         <pbx-prompt url="$ctrl"/> 
+         <lib-strcat string="$cgpn" string2=".G711a" out-string="$user"/>
+         <store-get root="" name="$user" out-url="$file"/>
+         <pbx-record url="$file" sec="10"/> 	
+     </function>  
+<!-- =======================Play==================================== -->    
+    <function define="Play">
+         <lib-strcat string="$leg2" string2=".G711a" out-string="$user"/>
+         <store-get root="" name="$user" out-url="$file"/>
+         <pbx-prompt url="$file"/>
+         <pbx-fwd e164="$leg2" out-cause="$cause"/>
+	 <switch var="$cause">  
+              <case not-equal="0">
+			<store-get root="" name="beep.g729" out-url="$ctrl"/>
+        		<pbx-prompt url="$ctrl"/>    
+			<pbx-disc/>             
+              </case>
+         </switch>
+      </function> 
+</voicemail>
+
+
+<!-- Absence Memo with VoiceMail XML Script wiki-src/xml/AbsenceMemo 1,0,0,0 (C) innovaphone AG 2010-2010 -->
